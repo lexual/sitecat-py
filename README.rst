@@ -1,7 +1,12 @@
+Python & Pandas support for SiteCatalyst, part of Adobe's Marketing Cloud.
+
+Python support for the SiteCatalyst API.
+
+Pandas integration for pulling reports directly into Pandas DataFrame's.
+
 Pandas example usage::
 
     from sitecat_py.pandas_api import SiteCatPandas
-    
     
     username = 'my_username'
     secret = 'my_shared_secret''
