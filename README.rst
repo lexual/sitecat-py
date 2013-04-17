@@ -28,8 +28,9 @@ Pandas example usage::
 Python example usage::
 
     from sitecat_py.python_api import SiteCatPy
+    from sitecat_py.pandas_api import SiteCatPandas
 
-    sc_py = SiteCatPandas(username, secret)
+    sc_py = SiteCatPy(username, secret)
 
     method = 'ReportSuite.GetSegments'
     request_data = {
@@ -51,5 +52,6 @@ Python example usage::
         'validate': 1,
     }
     json_data = sc_py.make_queued_request('Report.QueueTrended', request_data)
+    df = SiteCatPandas.df_from_sitecat_raw(json_data)
     ####
     json_data = sc_py.get_trended_report(request_data['report_description'])
