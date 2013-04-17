@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 
 from python_api import SiteCatPy
@@ -41,7 +42,7 @@ class SiteCatPandas:
                    for x in raw_data['report']['metrics']]
         element_names = []
         for element in raw_data['report']['elements']:
-            if element['name'] != 'Date':
+            if element['id'] != 'datetime':
                 try:
                     element_name = element['classification']
                 except KeyError:
@@ -56,7 +57,7 @@ class SiteCatPandas:
         # figure out which element is date, which are not.
         first_elements = flattened[0][0]
         for i, element in enumerate(first_elements):
-            if ' 20' in element:
+            if hasattr(element, 'year'):
                 date_element_n = i
                 non_date_ns = [n for n, _ in enumerate(first_elements)
                                if i != n]
@@ -65,9 +66,12 @@ class SiteCatPandas:
         for elements, counts in flattened:
             # 1st element is date string, the rest are the breakdowns.
             non_date_elements = [elements[x] for x in non_date_ns]
-            date_element = elements[date_element_n]
-            date = pd.datetools.parse(date_element).date()
-            record = {'date': date}
+            date = elements[date_element_n]
+            if hasattr(date, 'hour'):
+                time_col = 'hour'
+            else:
+                time_col = 'date'
+            record = {time_col: date}
             for i, element in enumerate(non_date_elements):
                 record[element_names[i]] = element
             for i, metric_value in enumerate(counts):
@@ -77,8 +81,8 @@ class SiteCatPandas:
                     record[metrics[i]] = float(metric_value)
             records.append(record)
         df = pd.DataFrame(records)
-        df = df.sort('date')
-        df.index = pd.DatetimeIndex(df.date)
+        df = df.sort(time_col)
+        df.index = pd.DatetimeIndex(df[time_col])
         # None's in SiteCat show up as "::unspecified::" in the API.
         for col in element_names:
             df[col].replace({'::unspecified::': 'None'}, inplace=True)
@@ -93,7 +97,12 @@ class SiteCatPandas:
             it is a list.
         """
         if 'breakdown' not in data:
-            name = data['name']
+            try:
+                name = datetime.datetime(data['year'], data['month'],
+                                         data['day'], data['hour'])
+            except KeyError:
+                name = datetime.date(data['year'], data['month'], data['day'])
+
             result = (names + (name,), data['counts'])
             results.append(result)
         else:

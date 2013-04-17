@@ -49,7 +49,7 @@ class SiteCatPy:
         r = requests.post(self.url, data=data, headers=headers, params=query)
         return r.json()
 
-    def make_queued_request(self, method, request_data, max_queue_checks=10,
+    def make_queued_request(self, method, request_data, max_queue_checks=20,
                             queue_check_freq=1):
         """queue request, wait for it to finish, return reponse as json"""
         queued_request = self.make_request(method, request_data)
@@ -60,7 +60,7 @@ class SiteCatPy:
         reportID = queued_request['reportID']
         for queue_check in xrange(max_queue_checks):
             time.sleep(queue_check_freq)
-            print 'queue check %s' % queue_check + 1
+            print 'queue check %s' % (queue_check + 1)
             job_status = self.make_request('Report.GetStatus',
                                            {'reportID': reportID})
             status = job_status['status']
