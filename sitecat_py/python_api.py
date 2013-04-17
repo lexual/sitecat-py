@@ -58,9 +58,9 @@ class SiteCatPy:
         if status.startswith('error'):
             raise Exception('Invalid request: %s' % queued_request)
         reportID = queued_request['reportID']
-        for queue_check in xrange(1, max_queue_checks + 1):
+        for queue_check in xrange(max_queue_checks):
             time.sleep(queue_check_freq)
-            print 'queue check %s' % queue_check
+            print 'queue check %s' % queue_check + 1
             job_status = self.make_request('Report.GetStatus',
                                            {'reportID': reportID})
             status = job_status['status']
