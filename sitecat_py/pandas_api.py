@@ -16,7 +16,7 @@ class SiteCatPandas:
         self.omni = SiteCatPy(username, secret)
 
     def read_sc(self, report_suite_id, date_from, date_to, metrics,
-                date_granularity='day', elements=None,
+                date_granularity='day', elements=None, segment_id=None,
                 max_queue_checks=None, queue_check_freq=None):
         """read data report from SiteCatalyst, return as dataframe."""
         report_description = {
@@ -28,6 +28,8 @@ class SiteCatPandas:
         }
         if elements:
             report_description['elements'] = elements
+        if segment_id:
+            report_description['segment_id'] = segment_id
         return self.read_sc_api(report_description=report_description,
                                 max_queue_checks=max_queue_checks,
                                 queue_check_freq=queue_check_freq)
@@ -66,7 +68,6 @@ class SiteCatPandas:
         """
         input: parsed json data that comes from SiteCat's api.
         output: pandas dataframe.
-        Currently handles up to 2 levels of element breakdowns.
         """
         data = raw_data['report']['data']
         if len(data) == 0:
