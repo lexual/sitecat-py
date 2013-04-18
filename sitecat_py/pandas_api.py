@@ -123,6 +123,7 @@ class SiteCatPandas:
         # None's in SiteCat show up as "::unspecified::" in the API.
         for col in element_names:
             df[col].replace({'::unspecified::': 'None'}, inplace=True)
+        df = df[element_names + metrics]
         return df
 
     @classmethod
