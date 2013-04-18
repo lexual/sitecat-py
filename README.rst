@@ -21,12 +21,13 @@ Pandas example usage::
 
     print df.head()
 
-    >                   date product_category  visits
-    > 2013-04-01  2013-04-01             None   13172
-    > 2013-04-01  2013-04-01           Shirts    1583
-    > 2013-04-01  2013-04-01            Pants     398
-    > 2013-04-01  2013-04-01            Jocks     102
-    > 2013-04-02  2013-04-02             None   16717
+    >             product_category  visits
+    > date
+    > 2013-04-01              None   13172
+    > 2013-04-01            Shirts    1583
+    > 2013-04-01             Pants     398
+    > 2013-04-01             Jocks     102
+    > 2013-04-02              None   16717
 
     # same report using .read_sc_api()
     
