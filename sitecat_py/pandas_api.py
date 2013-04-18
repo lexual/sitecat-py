@@ -15,9 +15,30 @@ class SiteCatPandas:
         self.secret = secret
         self.omni = SiteCatPy(username, secret)
 
-    def read_sc(self, report_description, max_queue_checks=None,
+    def read_sc(self, report_suite_id, date_from, date_to, metrics,
+                date_granularity='day', elements=None,
+                max_queue_checks=None, queue_check_freq=None):
+        """read data report from SiteCatalyst, return as dataframe."""
+        report_description = {
+            'reportSuiteID': report_suite_id,
+            'dateFrom': iso8601ify(date_from),
+            'dateTo': iso8601ify(date_to),
+            'dateGranularity': date_granularity,
+            'metrics': [{'id': metric} for metric in metrics],
+        }
+        if elements:
+            report_description['elements'] = elements
+        return self.read_sc_api(report_description=report_description,
+                                max_queue_checks=max_queue_checks,
+                                queue_check_freq=queue_check_freq)
+
+    def read_sc_api(self, report_description, max_queue_checks=None,
                      queue_check_freq=None):
-        """read trended data from SiteCatalyst, return as dataframe."""
+        """
+        read data report from SiteCatalyst, return as dataframe.
+
+        report_description is a report_description as required by SC API.
+        """
         kwargs = {'report_description': report_description}
         if max_queue_checks:
             kwargs['max_queue_checks'] = max_queue_checks
@@ -128,3 +149,12 @@ class SiteCatPandas:
             for lower_data in data['breakdown']:
                 name = _get_name(data)
                 cls._flatten(results, lower_data, names + (name,))
+
+
+def iso8601ify(date):
+    if not isinstance(date, basestring):
+        try:
+            date = date.date().isoformat()
+        except AttributeError:
+            date = date.isoformat()
+    return date

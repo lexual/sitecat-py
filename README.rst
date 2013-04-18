@@ -10,21 +10,15 @@ Pandas example usage::
     
     username = 'my_username'
     secret = 'my_shared_secret''
-    
-    report_description = {
-        "reportSuiteID": "my_reportsuite",
-        "dateFrom": "2013-04-01",
-        "dateTo": "2013-04-03",
-        "dateGranularity": "day",
-        "metrics": [{"id": "visits"}],
-        "elements": [{"id": "page"}],
-        #"elements": [{"id": "product", "classification": "Product Category"}],
-    }
-    
     sc_pd = SiteCatPandas(username, secret)
-    # automatically chooses whether to call QueueTrended or QueueOvertime
-    #   based on whether "elements" is given (what to break numbers down by).
-    df = sc_pd.read_sc(report_description)
+
+    elements = [{"id": "product", "classification": "Product Category"}]
+    df = sc_pd.read_sc(report_suite_id='my_report_suite',
+                       date_from=datetime.datetime(2013, 4, 1),
+                       date_to='2013-04-02',
+                       metrics=['visits'],
+                       elements=elements)
+
     print df.head()
 
     >                   date product_category  visits
@@ -33,6 +27,22 @@ Pandas example usage::
     > 2013-04-01  2013-04-01            Pants     398
     > 2013-04-01  2013-04-01            Jocks     102
     > 2013-04-02  2013-04-02             None   16717
+
+    # same report using .read_sc_api()
+    
+    report_description = {
+        "reportSuiteID": "my_reportsuite",
+        "dateFrom": "2013-04-01",
+        "dateTo": "2013-04-03",
+        "dateGranularity": "day",
+        "metrics": [{"id": "visits"}],
+        #"elements": [{"id": "page"}],
+        "elements": [{"id": "product", "classification": "Product Category"}],
+    }
+    
+    # automatically chooses whether to call QueueTrended or QueueOvertime
+    #   based on whether "elements" is given (what to break numbers down by).
+    df = sc_pd.read_sc_api(report_description)
 
 Python example usage::
 
