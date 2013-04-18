@@ -15,6 +15,19 @@ class SiteCatPandas:
         self.secret = secret
         self.omni = SiteCatPy(username, secret)
 
+    def read_sc(self, report_description, max_queue_checks=None,
+                     queue_check_freq=None):
+        """read trended data from SiteCatalyst, return as dataframe."""
+        kwargs = {'report_description': report_description}
+        if max_queue_checks:
+            kwargs['max_queue_checks'] = max_queue_checks
+        if queue_check_freq:
+            kwargs['queue_check_freq'] = queue_check_freq
+        jdata = self.omni.get_report(**kwargs)
+        df = self.df_from_sitecat_raw(jdata)
+        return df
+
+    # deprecated?!?
     def read_trended(self, report_description, max_queue_checks=None,
                      queue_check_freq=None):
         """read trended data from SiteCatalyst, return as dataframe."""
@@ -96,16 +109,22 @@ class SiteCatPandas:
         names is used to keep track of names in the various depths of recursion
             it is a list.
         """
-        if 'breakdown' not in data:
-            try:
-                name = datetime.datetime(data['year'], data['month'],
-                                         data['day'], data['hour'])
-            except KeyError:
-                name = datetime.date(data['year'], data['month'], data['day'])
+        def _get_name(d):
+            """return datetime or date object if date, else the name."""
+            if 'hour' in d:
+                name = datetime.datetime(d['year'], d['month'],
+                                         d['day'], d['hour'])
+            elif 'year' in d:
+                name = datetime.date(d['year'], d['month'], d['day'])
+            else:
+                name = data['name']
+            return name
 
+        if 'breakdown' not in data:
+            name = _get_name(data)
             result = (names + (name,), data['counts'])
             results.append(result)
         else:
             for lower_data in data['breakdown']:
-                name = data['name']
+                name = _get_name(data)
                 cls._flatten(results, lower_data, names + (name,))

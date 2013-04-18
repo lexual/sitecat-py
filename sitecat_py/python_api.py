@@ -67,18 +67,36 @@ class SiteCatPy:
             print 'report', reportID, status
             if status == 'done':
                 break
+            elif status == 'failed':
+                raise Exception('failed: %s' % job_status)
         else:
             raise Exception('max_queue_checks reached!!')
         report = self.make_request('Report.GetReport',
                                    {'reportID': reportID})
         return report
 
+    # deprecated?
     def get_trended_report(self, report_description, max_queue_checks=None,
                            queue_check_freq=None):
         """Get a trended report, just pass in report_description as dict"""
+        if 'elements' not in report_description:
+            raise Exception('Trended reports need "elements" defined')
+        return self.get_report(report_description=report_description,
+                               max_queue_checks=max_queue_checks,
+                               queue_check_freq=queue_check_freq)
+
+    def get_report(self, report_description, max_queue_checks=None,
+                   queue_check_freq=None):
+        """
+        Get a report, just pass in report_description as dict
+
+        Will figure out whether to make a Trended or Overtime report.
+        """
         kwargs = {
             'request_data': {
-                'validate': 1,
+                # validation lies, and throws errors, when a valid report
+                #   would otherwise have been returned !?!?!?
+                'validate': 0,
                 'reportDescription': report_description,
             }
         }
@@ -86,4 +104,8 @@ class SiteCatPy:
             kwargs['max_queue_checks'] = max_queue_checks
         if queue_check_freq:
             kwargs['queue_check_freq'] = queue_check_freq
-        return self.make_queued_request('Report.QueueTrended', **kwargs)
+        if 'elements' in report_description:
+            method = 'Report.QueueTrended'
+        else:
+            method = 'Report.QueueOvertime'
+        return self.make_queued_request(method, **kwargs)

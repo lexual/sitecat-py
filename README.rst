@@ -22,7 +22,9 @@ Pandas example usage::
     }
     
     sc_pd = SiteCatPandas(username, secret)
-    df = sc_pd.read_trended(report_description)
+    # automatically chooses whether to call QueueTrended or QueueOvertime
+    #   based on whether "elements" is given (what to break numbers down by).
+    df = sc_pd.read_sc(report_description)
     print df.head()
 
     >                   date product_category  visits
@@ -61,4 +63,4 @@ Python example usage::
     json_data = sc_py.make_queued_request('Report.QueueTrended', request_data)
     df = SiteCatPandas.df_from_sitecat_raw(json_data)
     ####
-    json_data = sc_py.get_trended_report(request_data['report_description'])
+    json_data = sc_py.get_report(request_data['report_description'])
