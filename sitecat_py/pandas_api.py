@@ -115,8 +115,11 @@ class SiteCatPandas:
                     record[metrics[i]] = float(metric_value)
             records.append(record)
         df = pd.DataFrame(records)
-        df = df.sort(time_col)
-        df.index = pd.DatetimeIndex(df[time_col])
+        df.set_index(time_col, inplace=True)
+        if not isinstance(df.index, pd.DatetimeIndex):
+            df.index = pd.DatetimeIndex(df.index)
+        df.sort_index(inplace=True)
+        df.index.name = time_col
         # None's in SiteCat show up as "::unspecified::" in the API.
         for col in element_names:
             df[col].replace({'::unspecified::': 'None'}, inplace=True)
