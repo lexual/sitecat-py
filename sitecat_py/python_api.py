@@ -101,9 +101,13 @@ class SiteCatPy:
         else:
             raise Exception('max_queue_checks reached!!')
 
-        report = self.make_request('Saint.ExportGetFileSegment',
-                                   {'file_id': file_id, 'segment_id': 1})
-        return report
+        file_segments = []
+        for page in xrange(1, int(pages) + 1):
+            file_segment = self.make_request('Saint.ExportGetFileSegment',
+                                             {'file_id': file_id,
+                                              'segment_id': page})
+            file_segments.append(file_segment)
+        return file_segments
 
     # deprecated?
     def get_trended_report(self, report_description, max_queue_checks=None,

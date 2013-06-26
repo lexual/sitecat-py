@@ -62,9 +62,13 @@ class SiteCatPandas:
             kwargs['max_queue_checks'] = max_queue_checks
         if queue_check_freq:
             kwargs['queue_check_freq'] = queue_check_freq
-        jdata = self.omni.make_queued_saint_request(**kwargs)
-        df = self.df_from_saint_raw(jdata, only_unclassified=only_unclassified)
-        return df
+        file_segments = self.omni.make_queued_saint_request(**kwargs)
+        dfs = []
+        for file_segment in file_segments:
+            df = self.df_from_saint_raw(file_segment,
+                                        only_unclassified=only_unclassified)
+            dfs.append(df)
+        return pd.concat(dfs)
 
     # deprecated?!?
     def read_trended(self, report_description, max_queue_checks=None,
