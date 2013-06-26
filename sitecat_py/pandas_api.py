@@ -50,6 +50,22 @@ class SiteCatPandas:
         df = self.df_from_sitecat_raw(jdata)
         return df
 
+    def read_saint_api(self, report_description, only_unclassified,
+                       max_queue_checks=None, queue_check_freq=None):
+        """
+        read data report from SiteCatalyst SAINT, return as dataframe.
+
+        report_description is a report_description as required by Saint API.
+        """
+        kwargs = {'request_data': report_description}
+        if max_queue_checks:
+            kwargs['max_queue_checks'] = max_queue_checks
+        if queue_check_freq:
+            kwargs['queue_check_freq'] = queue_check_freq
+        jdata = self.omni.make_queued_saint_request(**kwargs)
+        df = self.df_from_saint_raw(jdata, only_unclassified=only_unclassified)
+        return df
+
     # deprecated?!?
     def read_trended(self, report_description, max_queue_checks=None,
                      queue_check_freq=None):
@@ -154,6 +170,17 @@ class SiteCatPandas:
             for lower_data in data['breakdown']:
                 name = _get_name(data)
                 cls._flatten(results, lower_data, names + (name,))
+
+    @staticmethod
+    def df_from_saint_raw(raw_data, only_unclassified=False):
+        rows = [x['row'] for x in raw_data[0]['data']]
+        if only_unclassified:
+            rows = [row for row in rows if len(row) == 1]
+        while len(rows[0]) < len(raw_data[0]['header']):
+            rows[0].append(None)
+        df = pd.DataFrame(rows, columns=raw_data[0]['header'])
+        return df
+
 
 
 def iso8601ify(date):

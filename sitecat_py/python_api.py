@@ -49,8 +49,8 @@ class SiteCatPy:
         r = requests.post(self.url, data=data, headers=headers, params=query)
         return r.json()
 
-    def make_queued_request(self, method, request_data, max_queue_checks=20,
-                            queue_check_freq=1):
+    def make_queued_report_request(self, method, request_data,
+                                   max_queue_checks=20, queue_check_freq=1):
         """queue request, wait for it to finish, return reponse as json"""
         queued_request = self.make_request(method, request_data)
         pprint(queued_request)
@@ -73,6 +73,36 @@ class SiteCatPy:
             raise Exception('max_queue_checks reached!!')
         report = self.make_request('Report.GetReport',
                                    {'reportID': reportID})
+        return report
+
+    def make_queued_saint_request(self, request_data, max_queue_checks=20,
+                                  queue_check_freq=1):
+        """queue request, wait for it to finish, return reponse as json"""
+        job_id = self.make_request('Saint.ExportCreateJob', request_data)
+        for queue_check in xrange(max_queue_checks):
+            time.sleep(queue_check_freq)
+            print 'queue check %s' % (queue_check + 1)
+            returned_status = self.make_request('Saint.CheckJobStatus',
+                                                  {'job_id': job_id})
+            pprint(returned_status)
+            status = returned_status[0]['status']
+            if status == 'Completed':
+                job_req, file_req = returned_status
+                file_id = file_req['id']
+                file_status = file_req['status']
+                print 'File Status for %s is %s' % (file_id, file_status)
+                if file_status == 'Ready':
+                    status = 'done'
+                    pages = file_req['viewable_pages']
+            if status == 'done':
+                break
+            elif status == 'failed':
+                raise Exception('failed: %s' % job_status)
+        else:
+            raise Exception('max_queue_checks reached!!')
+
+        report = self.make_request('Saint.ExportGetFileSegment',
+                                   {'file_id': file_id, 'segment_id': 1})
         return report
 
     # deprecated?
@@ -108,4 +138,4 @@ class SiteCatPy:
             method = 'Report.QueueTrended'
         else:
             method = 'Report.QueueOvertime'
-        return self.make_queued_request(method, **kwargs)
+        return self.make_queued_report_request(method, **kwargs)
