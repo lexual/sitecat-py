@@ -68,7 +68,7 @@ class SiteCatPandas:
             df = self.df_from_saint_raw(file_segment,
                                         only_unclassified=only_unclassified)
             dfs.append(df)
-        return pd.concat(dfs)
+        return pd.concat(dfs, ignore_index=True)
 
     # deprecated?!?
     def read_trended(self, report_description, max_queue_checks=None,
