@@ -110,7 +110,11 @@ class SiteCatPandas:
         flattened = [x for x in flattened
                      if len(x[0]) == len(element_names) + 1]
         # figure out which element is date, which are not.
-        first_elements = flattened[0][0]
+        try:
+            first_elements = flattened[0][0]
+        except IndexError:
+            # empty report returned
+            return pd.DataFrame()
         for i, element in enumerate(first_elements):
             if hasattr(element, 'year'):
                 date_element_n = i
