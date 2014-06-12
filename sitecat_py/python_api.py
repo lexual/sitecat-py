@@ -46,7 +46,12 @@ class SiteCatPy:
         query = {'method': method}
         headers = self._get_header_auth()
         data = json.dumps(request_data)
-        r = requests.post(self.url, data=data, headers=headers, params=query)
+        max_tries = 5
+        for _ in range(5):
+            r = requests.post(self.url, data=data, headers=headers,
+                              params=query)
+            if r.status_code != 500:
+                break
         return r.json()
 
     def make_queued_report_request(self, method, request_data,
