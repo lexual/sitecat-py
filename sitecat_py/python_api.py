@@ -82,6 +82,13 @@ class SiteCatPy:
                                    {'reportID': reportID})
         return report
 
+    def is_report_done(report_id):
+        job_status = self.make_request('Report.GetStatus',
+                                       {'reportID': reportID})
+        status = job_status['status']
+        is_done = status == 'done'
+        return is_done
+
     def make_queued_saint_request(self, request_data, max_queue_checks=20,
                                   queue_check_freq=1):
         """queue request, wait for it to finish, return reponse as json"""

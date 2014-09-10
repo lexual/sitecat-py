@@ -15,6 +15,15 @@ class SiteCatPandas:
         self.secret = secret
         self.omni = SiteCatPy(username, secret)
 
+    def read_sc_report(self, report_id):
+        """
+        Read already queued report by report_id
+        """
+        jdata = self.omni.make_request('Report.GetReport',
+                                       {'reportID': report_id})
+        df = self.df_from_sitecat_raw(jdata)
+        return df
+
     def read_sc(self, report_suite_id, date_from, date_to, metrics,
                 date_granularity='day', elements=None, segment_id=None,
                 max_queue_checks=None, queue_check_freq=None,
