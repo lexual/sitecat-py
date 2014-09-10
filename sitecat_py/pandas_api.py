@@ -17,7 +17,8 @@ class SiteCatPandas:
 
     def read_sc(self, report_suite_id, date_from, date_to, metrics,
                 date_granularity='day', elements=None, segment_id=None,
-                max_queue_checks=None, queue_check_freq=None):
+                max_queue_checks=None, queue_check_freq=None,
+                queue_only=False):
         """read data report from SiteCatalyst, return as dataframe."""
         report_description = {
             'reportSuiteID': report_suite_id,
@@ -32,10 +33,11 @@ class SiteCatPandas:
             report_description['segment_id'] = segment_id
         return self.read_sc_api(report_description=report_description,
                                 max_queue_checks=max_queue_checks,
-                                queue_check_freq=queue_check_freq)
+                                queue_check_freq=queue_check_freq,
+                                queue_only=queue_only)
 
     def read_sc_api(self, report_description, max_queue_checks=None,
-                     queue_check_freq=None):
+                     queue_check_freq=None, queue_only=False):
         """
         read data report from SiteCatalyst, return as dataframe.
 
@@ -46,9 +48,14 @@ class SiteCatPandas:
             kwargs['max_queue_checks'] = max_queue_checks
         if queue_check_freq:
             kwargs['queue_check_freq'] = queue_check_freq
-        jdata = self.omni.get_report(**kwargs)
-        df = self.df_from_sitecat_raw(jdata)
-        return df
+        kwargs['queue_only'] = queue_only
+        if queue_only:
+            report_id = self.omni.get_report(**kwargs)
+            return report_id
+        else:
+            jdata = self.omni.get_report(**kwargs)
+            df = self.df_from_sitecat_raw(jdata)
+            return df
 
     def read_saint_api(self, report_description, only_unclassified,
                        max_queue_checks=None, queue_check_freq=None):

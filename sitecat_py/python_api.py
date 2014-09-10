@@ -54,15 +54,17 @@ class SiteCatPy:
                 break
         return r.json()
 
-    def make_queued_report_request(self, method, request_data,
-                                   max_queue_checks=20, queue_check_freq=1):
-        """queue request, wait for it to finish, return reponse as json"""
+    def make_report_request(self, method, request_data):
         queued_request = self.make_request(method, request_data)
-        pprint(queued_request)
         status = queued_request['status']
         if status.startswith('error'):
             raise Exception('Invalid request: %s' % queued_request)
-        reportID = queued_request['reportID']
+        return queued_request['reportID']
+
+    def make_queued_report_request(self, method, request_data,
+                                   max_queue_checks=20, queue_check_freq=1):
+        """queue request, wait for it to finish, return reponse as json"""
+        reportID = make_report_request(method, request_data)
         for queue_check in xrange(max_queue_checks):
             time.sleep(queue_check_freq)
             print 'queue check %s' % (queue_check + 1)
@@ -125,7 +127,7 @@ class SiteCatPy:
                                queue_check_freq=queue_check_freq)
 
     def get_report(self, report_description, max_queue_checks=None,
-                   queue_check_freq=None):
+                   queue_check_freq=None, queue_only=False):
         """
         Get a report, just pass in report_description as dict
 
@@ -147,4 +149,8 @@ class SiteCatPy:
             method = 'Report.QueueTrended'
         else:
             method = 'Report.QueueOvertime'
-        return self.make_queued_report_request(method, **kwargs)
+        kwargs['queue_only'] = queue_only
+        if queue_only:
+            return self.make_report_request(method, **kwargs)
+        else:
+            return self.make_queued_report_request(method, **kwargs)
