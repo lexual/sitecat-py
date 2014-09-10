@@ -116,9 +116,12 @@ class SiteCatPy:
         return file_segments
 
     def make_queued_saint_request(self, request_data, max_queue_checks=20,
-                                  queue_check_freq=1):
+                                  queue_check_freq=1,
+                                  queue_only=False):
         """queue request, wait for it to finish, return reponse as json"""
         job_id = self.make_saint_request(request_data)
+        if queue_only:
+            return job_id
         for queue_check in xrange(max_queue_checks):
             time.sleep(queue_check_freq)
             print 'queue check %s' % (queue_check + 1)
