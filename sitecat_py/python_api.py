@@ -82,7 +82,7 @@ class SiteCatPy:
                                    {'reportID': reportID})
         return report
 
-    def is_report_done(report_id):
+    def is_report_done(self, report_id):
         job_status = self.make_request('Report.GetStatus',
                                        {'reportID': reportID})
         status = job_status['status']
