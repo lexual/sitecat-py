@@ -141,10 +141,6 @@ class SiteCatPy:
                 'reportDescription': report_description,
             }
         }
-        if max_queue_checks:
-            kwargs['max_queue_checks'] = max_queue_checks
-        if queue_check_freq:
-            kwargs['queue_check_freq'] = queue_check_freq
         if 'elements' in report_description:
             method = 'Report.QueueTrended'
         else:
@@ -152,4 +148,8 @@ class SiteCatPy:
         if queue_only:
             return self.make_report_request(method, **kwargs)
         else:
+            if max_queue_checks:
+                kwargs['max_queue_checks'] = max_queue_checks
+            if queue_check_freq:
+                kwargs['queue_check_freq'] = queue_check_freq
             return self.make_queued_report_request(method, **kwargs)
