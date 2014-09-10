@@ -70,7 +70,7 @@ class SiteCatPandas:
         file_segments = self.omni.get_saint_report_filesegments(job_id)
         return self._df_from_filesegments(file_segments)
 
-    def _df_from_filesegments(self, file_segments):
+    def _df_from_filesegments(self, file_segments, only_unclassified=False):
         """read SAINT file_segments into a single dataframe"""
         dfs = []
         for file_segment in file_segments:
@@ -92,7 +92,7 @@ class SiteCatPandas:
         if queue_check_freq:
             kwargs['queue_check_freq'] = queue_check_freq
         file_segments = self.omni.make_queued_saint_request(**kwargs)
-        return self._df_from_filesegments(file_segments)
+        return self._df_from_filesegments(file_segments, only_unclassified)
 
     # deprecated?!?
     def read_trended(self, report_description, max_queue_checks=None,
