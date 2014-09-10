@@ -149,7 +149,6 @@ class SiteCatPy:
             method = 'Report.QueueTrended'
         else:
             method = 'Report.QueueOvertime'
-        kwargs['queue_only'] = queue_only
         if queue_only:
             return self.make_report_request(method, **kwargs)
         else:
