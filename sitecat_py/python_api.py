@@ -68,14 +68,8 @@ class SiteCatPy:
         for queue_check in xrange(max_queue_checks):
             time.sleep(queue_check_freq)
             print 'queue check %s' % (queue_check + 1)
-            job_status = self.make_request('Report.GetStatus',
-                                           {'reportID': reportID})
-            status = job_status['status']
-            print 'report', reportID, status
-            if status == 'done':
+            if self.is_report_done(reportID):
                 break
-            elif status == 'failed':
-                raise Exception('failed: %s' % job_status)
         else:
             raise Exception('max_queue_checks reached!!')
         report = self.make_request('Report.GetReport',
@@ -89,38 +83,50 @@ class SiteCatPy:
         is_done = status == 'done'
         return is_done
 
-    def make_queued_saint_request(self, request_data, max_queue_checks=20,
-                                  queue_check_freq=1):
-        """queue request, wait for it to finish, return reponse as json"""
+    def make_saint_request(self, request_data):
         job_id = self.make_request('Saint.ExportCreateJob', request_data)
-        for queue_check in xrange(max_queue_checks):
-            time.sleep(queue_check_freq)
-            print 'queue check %s' % (queue_check + 1)
-            returned_status = self.make_request('Saint.CheckJobStatus',
-                                                  {'job_id': job_id})
-            pprint(returned_status)
-            status = returned_status[0]['status']
-            if status == 'Completed':
-                job_req, file_req = returned_status
-                file_id = file_req['id']
-                file_status = file_req['status']
-                print 'File Status for %s is %s' % (file_id, file_status)
-                if file_status == 'Ready':
-                    status = 'done'
-                    pages = file_req['viewable_pages']
-            if status == 'done':
-                break
-            elif status == 'failed':
-                raise Exception('failed: %s' % job_status)
-        else:
-            raise Exception('max_queue_checks reached!!')
+        return job_id
 
+
+    def is_saint_report_done(self, job_id):
+        returned_status = self.make_request('Saint.CheckJobStatus',
+                                              {'job_id': job_id})
+        status = returned_status[0]['status']
+        if status == 'Completed':
+            _, file_req = returned_status
+            file_status = file_req['status']
+            if file_status == 'Ready':
+                return True
+        elif status == 'failed':
+            raise Exception('failed: %s' % job_status)
+        return False
+
+    def get_saint_report_filesegments(self, job_id):
+        returned_status = self.make_request('Saint.CheckJobStatus',
+                                            {'job_id': job_id})
+        _, file_req = returned_status
+        file_id = file_req['id']
+        pages = file_req['viewable_pages']
         file_segments = []
         for page in xrange(1, int(pages) + 1):
             file_segment = self.make_request('Saint.ExportGetFileSegment',
                                              {'file_id': file_id,
                                               'segment_id': page})
             file_segments.append(file_segment)
+        return file_segments
+
+    def make_queued_saint_request(self, request_data, max_queue_checks=20,
+                                  queue_check_freq=1):
+        """queue request, wait for it to finish, return reponse as json"""
+        job_id = self.make_saint_request(request_data)
+        for queue_check in xrange(max_queue_checks):
+            time.sleep(queue_check_freq)
+            print 'queue check %s' % (queue_check + 1)
+            if self.is_saint_report_done(job_id):
+                break
+        else:
+            raise Exception('max_queue_checks reached!!')
+        file_segments = self.get_saint_report_filesegments(job_id)
         return file_segments
 
     # deprecated?
