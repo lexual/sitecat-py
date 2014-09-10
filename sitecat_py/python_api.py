@@ -64,7 +64,7 @@ class SiteCatPy:
     def make_queued_report_request(self, method, request_data,
                                    max_queue_checks=20, queue_check_freq=1):
         """queue request, wait for it to finish, return reponse as json"""
-        reportID = make_report_request(method, request_data)
+        reportID = self.make_report_request(method, request_data)
         for queue_check in xrange(max_queue_checks):
             time.sleep(queue_check_freq)
             print 'queue check %s' % (queue_check + 1)
