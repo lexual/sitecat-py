@@ -72,6 +72,8 @@ class SiteCatPandas:
 
     def _df_from_filesegments(self, file_segments, only_unclassified=False):
         """read SAINT file_segments into a single dataframe"""
+        if len(file_segments) == 0:
+            return pd.DataFrame()
         dfs = []
         for file_segment in file_segments:
             df = self.df_from_saint_raw(file_segment,

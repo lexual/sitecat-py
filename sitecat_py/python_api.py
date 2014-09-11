@@ -93,6 +93,8 @@ class SiteCatPy:
                                               {'job_id': job_id})
         status = returned_status[0]['status']
         if status == 'Completed':
+            if len(returned_status) == 1:
+                return True
             _, file_req = returned_status
             file_status = file_req['status']
             if file_status == 'Ready':
@@ -104,6 +106,8 @@ class SiteCatPy:
     def get_saint_report_filesegments(self, job_id):
         returned_status = self.make_request('Saint.CheckJobStatus',
                                             {'job_id': job_id})
+        if len(returned_status) == 1:
+            return []
         _, file_req = returned_status
         file_id = file_req['id']
         pages = file_req['viewable_pages']
