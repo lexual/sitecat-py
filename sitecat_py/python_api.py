@@ -79,6 +79,8 @@ class SiteCatPy:
     def is_report_done(self, report_id):
         job_status = self.make_request('Report.GetStatus',
                                        {'reportID': report_id})
+        if 'errors' in job_status:
+            return None
         status = job_status['status']
         is_done = status == 'done'
         return is_done
