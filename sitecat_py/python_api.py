@@ -55,8 +55,12 @@ class SiteCatPy:
         return r.json()
 
     def make_report_request(self, method, request_data):
-        queued_request = self.make_request(method, request_data)
-        status = queued_request['status']
+        for _ in xrange(3):
+            # sometimes, seem to complain about repeated Nonce.
+            queued_request = self.make_request(method, request_data)
+            if 'error' not in queued_request:
+                status = queued_request['status']
+                break
         if status.startswith('error'):
             raise Exception('Invalid request: %s' % queued_request)
         return queued_request['reportID']
