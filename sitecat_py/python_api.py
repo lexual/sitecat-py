@@ -26,13 +26,16 @@ class SiteCatPy:
         created_date = datetime.datetime.now().isoformat()
 
         sha1 = hashlib.sha1()
-        sha1.update(nonce + created_date + self.secret)
+        to_be_hashed = (nonce + created_date + self.secret).encode('ascii')
+        sha1.update(to_be_hashed)
         digest = sha1.digest()
+        b64_nonce = b64encode(nonce.encode('ascii')).decode('ascii')
+        b64_digest = b64encode(digest).decode('ascii')
         auth = {
             'Username': self.username,
-            'PasswordDigest': b64encode(digest),
+            'PasswordDigest': b64_digest,
             'Created': created_date,
-            'Nonce': b64encode(nonce),
+            'Nonce': b64_nonce,
         }
         # looks like: 'UsernameToken Username="foo", PasswordDigest="%s", ...'
         header_auth = 'UsernameToken '
@@ -55,7 +58,7 @@ class SiteCatPy:
         return r.json()
 
     def make_report_request(self, method, request_data):
-        for _ in xrange(3):
+        for _ in range(3):
             # sometimes, seem to complain about repeated Nonce.
             queued_request = self.make_request(method, request_data)
             if 'error' not in queued_request:
@@ -69,9 +72,9 @@ class SiteCatPy:
                                    max_queue_checks=20, queue_check_freq=1):
         """queue request, wait for it to finish, return reponse as json"""
         reportID = self.make_report_request(method, request_data)
-        for queue_check in xrange(max_queue_checks):
+        for queue_check in range(max_queue_checks):
             time.sleep(queue_check_freq)
-            print 'queue check %s' % (queue_check + 1)
+            print('queue check %s' % (queue_check + 1))
             if self.is_report_done(reportID):
                 break
         else:
@@ -118,7 +121,7 @@ class SiteCatPy:
         file_id = file_req['id']
         pages = file_req['viewable_pages']
         file_segments = []
-        for page in xrange(1, int(pages) + 1):
+        for page in range(1, int(pages) + 1):
             file_segment = self.make_request('Saint.ExportGetFileSegment',
                                              {'file_id': file_id,
                                               'segment_id': page})
@@ -132,9 +135,9 @@ class SiteCatPy:
         job_id = self.make_saint_request(request_data)
         if queue_only:
             return job_id
-        for queue_check in xrange(max_queue_checks):
+        for queue_check in range(max_queue_checks):
             time.sleep(queue_check_freq)
-            print 'queue check %s' % (queue_check + 1)
+            print('queue check %s' % (queue_check + 1))
             if self.is_saint_report_done(job_id):
                 break
         else:

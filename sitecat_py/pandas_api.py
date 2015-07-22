@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 
-from python_api import SiteCatPy
+from .python_api import SiteCatPy
 
 
 class SiteCatPandas:
@@ -224,6 +224,12 @@ class SiteCatPandas:
 
 
 def iso8601ify(date):
+    try:
+        # py2
+        basestring = basestring
+    except NameError:
+        # py3
+        basestring = (str, bytes)
     if not isinstance(date, basestring):
         try:
             date = date.date().isoformat()
