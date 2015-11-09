@@ -16,14 +16,15 @@ class SiteCatPy:
         if url:
             self.url = url
         else:
-            self.url = 'https://api.omniture.com/admin/1.3/rest/'
+            self.url = 'https://api.omniture.com/admin/1.4/rest/'
         self.username = username
         self.secret = secret
 
     def _get_header_auth(self):
         """Creates header information for authentication required by sitecat"""
         nonce = str(time.time())
-        created_date = datetime.datetime.now().isoformat()
+        created_date = datetime.datetime.utcnow().isoformat()
+        created_date = created_date[:18] + 'Z'
 
         sha1 = hashlib.sha1()
         to_be_hashed = (nonce + created_date + self.secret).encode('ascii')
@@ -62,11 +63,11 @@ class SiteCatPy:
             # sometimes, seem to complain about repeated Nonce.
             queued_request = self.make_request(method, request_data)
             if 'error' not in queued_request:
-                status = queued_request['status']
+                report_id = queued_request['reportID']
                 break
-        if status.startswith('error'):
+        if 'error' in queued_request:
             raise Exception('Invalid request: %s' % queued_request)
-        return queued_request['reportID']
+        return report_id
 
     def make_queued_report_request(self, method, request_data,
                                    max_queue_checks=20, queue_check_freq=1):
@@ -79,17 +80,17 @@ class SiteCatPy:
                 break
         else:
             raise Exception('max_queue_checks reached!!')
-        report = self.make_request('Report.GetReport',
+        report = self.make_request('Report.Get',
                                    {'reportID': reportID})
         return report
 
     def is_report_done(self, report_id):
-        job_status = self.make_request('Report.GetStatus',
+        job_status = self.make_request('Report.Get',
                                        {'reportID': report_id})
-        if 'errors' in job_status:
-            return None
-        status = job_status['status']
-        is_done = status == 'done'
+        if 'error' in job_status:
+            if job_status['error'] != 'report_not_ready':
+            	return None
+        is_done = 'report' in job_status
         return is_done
 
     def make_saint_request(self, request_data):
@@ -145,16 +146,6 @@ class SiteCatPy:
         file_segments = self.get_saint_report_filesegments(job_id)
         return file_segments
 
-    # deprecated?
-    def get_trended_report(self, report_description, max_queue_checks=None,
-                           queue_check_freq=None):
-        """Get a trended report, just pass in report_description as dict"""
-        if 'elements' not in report_description:
-            raise Exception('Trended reports need "elements" defined')
-        return self.get_report(report_description=report_description,
-                               max_queue_checks=max_queue_checks,
-                               queue_check_freq=queue_check_freq)
-
     def get_report(self, report_description, max_queue_checks=None,
                    queue_check_freq=None, queue_only=False):
         """
@@ -170,10 +161,8 @@ class SiteCatPy:
                 'reportDescription': report_description,
             }
         }
-        if 'elements' in report_description:
-            method = 'Report.QueueTrended'
-        else:
-            method = 'Report.QueueOvertime'
+        
+        method = 'Report.Queue'
         if queue_only:
             return self.make_report_request(method, **kwargs)
         else:

@@ -19,7 +19,7 @@ class SiteCatPandas:
         """
         Read already queued report by report_id
         """
-        jdata = self.omni.make_request('Report.GetReport',
+        jdata = self.omni.make_request('Report.Get',
                                        {'reportID': report_id})
         df = self.df_from_sitecat_raw(jdata)
         return df
